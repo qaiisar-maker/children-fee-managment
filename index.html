@@ -315,16 +315,21 @@ let db=null,SQL=null,editingEntryId=null;
 async function initApp(){
   try{
     if(!SQL){
-      toast('⏳ Loading database...',4000);
-      SQL=await initSqlJs({locateFile:f=>`https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}`});
+      // Show loading on lock screen pin error area
+      const errEl=document.getElementById('pin-error');
+      if(errEl){errEl.style.color='#69f0ae';errEl.textContent='⏳ Loading...';}
+      SQL = await initSqlJs({locateFile:f=>`https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}`});
+      if(errEl){errEl.textContent='';}
     }
-    loadDBFromStorage();createTables();setTodayDate();refreshAll();setupLiveTotal();await updateSQStatus();
-    toast('✅ App ready!');
+    loadDBFromStorage();
+    createTables();
+    setTodayDate();
+    refreshAll();
+    setupLiveTotal();
+    await updateSQStatus();
   }catch(err){
     console.error('initApp error:',err);
-    toast('❌ Error: '+err.message+' — Refresh karein!',6000);
-    // Show app anyway so user is not stuck
-    document.getElementById('mainApp').style.display='block';
+    alert('Database error: ' + err.message + '\nPage refresh karein!');
   }
 }
 function loadDBFromStorage(){const saved=localStorage.getItem('feeManagerDB');if(saved){const arr=new Uint8Array(JSON.parse(saved));db=new SQL.Database(arr);}else db=new SQL.Database();}
@@ -360,7 +365,18 @@ function importData(event){const file=event.target.files[0];if(!file)return;cons
 (function(){const bar=document.getElementById('offline-bar');function upd(){bar.style.display=navigator.onLine?'none':'block';}window.addEventListener('online',upd);window.addEventListener('offline',upd);upd();})();
 document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
-openIDB().catch(()=>console.log('IDB error'));
+// INIT — Preload SQL.js on page load (background mein)
+async function preloadSQL(){
+  try{
+    if(!SQL){
+      SQL = await initSqlJs({locateFile:f=>`https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}`});
+      console.log('SQL.js preloaded!');
+    }
+  }catch(e){ console.error('SQL preload error:',e); }
+}
+openIDB().then(()=>{
+  preloadSQL();
+}).catch(()=>console.log('IDB error'));
 </script>
 </body>
 </html>
