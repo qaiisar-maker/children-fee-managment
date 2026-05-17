@@ -1,40 +1,27 @@
-const CACHE_NAME = 'fee-manager-v1';
+const CACHE = 'children-fee-v2';
 const ASSETS = [
   './',
   './index.html',
+  './manifest.json',
   'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.wasm',
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
-  'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap'
+  'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap'
 ];
-
-// Install — cache all assets
 self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return Promise.allSettled(
-        ASSETS.map(url => cache.add(url).catch(() => {}))
-      );
-    })
-  );
-  self.skipWaiting();
+  e.waitUntil(caches.open(CACHE).then(c => Promise.allSettled(ASSETS.map(u => c.add(u).catch(() => null)))).then(() => self.skipWaiting()));
 });
-
-// Activate — remove old caches
 self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
-
-// Fetch — cache first, then network
 self.addEventListener('fetch', e => {
-  e.respondWith(
-    caches.match(e.request).then(cached => {
-      return cached || fetch(e.request).catch(() => cached);
-    })
-  );
+  e.respondWith(caches.match(e.request).then(cached => {
+    if (cached) return cached;
+    return fetch(e.request).then(resp => {
+      if (resp && resp.status === 200 && e.request.url.startsWith('https')) {
+        const rc = resp.clone();
+        caches.open(CACHE).then(c => c.put(e.request, rc));
+      }
+      return resp;
+    }).catch(() => cached || new Response('Offline', { status: 503 }));
+  }));
 });
