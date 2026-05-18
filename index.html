@@ -7,376 +7,629 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0D47A1">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Fee Manager">
 <link rel="apple-touch-icon" href="icon-192.png">
-<meta name="mobile-web-app-capable" content="yes">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--primary:#1565C0;--primary-dark:#0D47A1;--primary-light:#42A5F5;--accent:#FF6F00;--accent-light:#FFB300;--success:#2E7D32;--danger:#C62828;--bg:#E3F2FD;--bg2:#BBDEFB;--card:#FFFFFF;--text:#0D1B2A;--text2:#37474F;--border:#90CAF9;--shadow:0 4px 20px rgba(21,101,192,0.15);--radius:16px;--radius-sm:10px}
+:root{--primary:#1565C0;--primary-dark:#0D47A1;--accent:#FF6F00;--accent-light:#FFB300;--success:#2E7D32;--danger:#C62828;--bg:#E3F2FD;--bg2:#BBDEFB;--card:#fff;--text:#0D1B2A;--text2:#37474F;--border:#90CAF9;--shadow:0 4px 20px rgba(21,101,192,0.15);--radius:16px;--radius-sm:10px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
-#lock-screen{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0D47A1,#1565C0,#1976D2,#42A5F5);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:10px;overflow-y:auto}
+/* PIN LOCK */
+#lock-screen{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0D47A1,#1565C0,#1976D2,#42A5F5);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:10px}
 #lock-screen.hidden{display:none}
 .lock-icons{font-size:30px;display:flex;gap:10px}
 .lock-title{color:#fff;font-size:22px;font-weight:800;text-align:center}
 .lock-sub{color:rgba(255,255,255,0.75);font-size:12px;text-align:center}
 .pin-dots{display:flex;gap:12px;margin:8px 0}
 .pin-dot{width:15px;height:15px;border-radius:50%;border:2px solid rgba(255,255,255,0.7);background:transparent;transition:background .2s}
-.pin-dot.filled{background:white}
+.pin-dot.filled{background:#fff}
 .pin-mode-lbl{color:rgba(255,255,255,0.8);font-size:11px;letter-spacing:1px;text-align:center;min-height:16px}
 .pin-grid{display:grid;grid-template-columns:repeat(3,68px);gap:10px}
-.pin-btn{width:68px;height:68px;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.2);border-radius:13px;color:white;font-family:'Poppins',sans-serif;font-size:22px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
-.pin-btn:active{background:white;color:var(--primary);transform:scale(0.93)}
-.pin-error{color:#FFB300;font-size:12px;min-height:16px;text-align:center}
-.pin-link{color:rgba(255,255,255,0.8);font-size:11px;text-decoration:underline;cursor:pointer}
-.pin-link2{color:rgba(255,255,255,0.55);font-size:10px;cursor:pointer;text-decoration:underline}
+.pin-btn{width:68px;height:68px;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.25);border-radius:13px;color:#fff;font-family:'Poppins',sans-serif;font-size:22px;font-weight:700;cursor:pointer;transition:all .15s}
+.pin-btn:active{background:#fff;color:var(--primary);transform:scale(0.93)}
+.pin-error{color:#FFB300;font-size:12px;min-height:16px;text-align:center;font-weight:600}
+.pin-link{color:rgba(255,255,255,0.85);font-size:12px;text-decoration:underline;cursor:pointer;margin-top:4px}
+.pin-link2{color:rgba(255,255,255,0.55);font-size:11px;cursor:pointer;text-decoration:underline}
+/* Forgot PIN */
 #forgot-pin-section{display:none;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.3);border-radius:14px;padding:14px;width:100%;max-width:290px;text-align:center}
 .fp-q-box{background:rgba(255,255,255,0.12);border-radius:10px;padding:10px;color:#ffe066;font-size:12px;font-weight:600;margin-bottom:8px;line-height:1.5}
-#forgot-pin-section input{width:100%;padding:10px 12px;border:1.5px solid rgba(255,255,255,0.3);border-radius:9px;font-family:'Poppins',sans-serif;font-size:13px;color:var(--text);background:rgba(255,255,255,0.9);margin-bottom:7px}
-.fp-btn{background:white;color:var(--primary);border:none;border-radius:9px;padding:11px;width:100%;font-family:'Poppins',sans-serif;font-size:13px;font-weight:700;cursor:pointer}
+#forgot-pin-section input{width:100%;padding:10px 12px;border:1.5px solid rgba(255,255,255,0.3);border-radius:9px;font-family:'Poppins',sans-serif;font-size:13px;color:#111;background:rgba(255,255,255,0.9);margin-bottom:7px;outline:none}
+.fp-btn{background:#fff;color:var(--primary);border:none;border-radius:9px;padding:11px;width:100%;font-family:'Poppins',sans-serif;font-size:13px;font-weight:700;cursor:pointer}
 .fp-back{color:rgba(255,255,255,0.6);font-size:11px;cursor:pointer;margin-top:7px;display:block;text-decoration:underline}
-#folder-picker-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9990;display:none;align-items:center;justify-content:center;padding:20px}
-#folder-picker-modal.open{display:flex}
-#fp-box{background:var(--card);border-radius:18px;padding:22px;width:100%;max-width:310px;box-shadow:0 8px 40px rgba(0,0,0,.4)}
-.fp-modal-title{color:var(--primary-dark);font-size:16px;font-weight:700;margin-bottom:5px}
-.fp-modal-sub{font-size:11px;color:var(--text2);margin-bottom:14px}
-.fp-modal-btn{width:100%;padding:13px;border:none;border-radius:9px;font-family:'Poppins',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:7px}
-.fp-modal-cancel{width:100%;padding:9px;border:1.5px solid #ccc;border-radius:9px;font-family:'Poppins',sans-serif;font-size:12px;cursor:pointer;background:none;color:var(--text2)}
-#offline-bar{display:none;position:fixed;top:0;left:0;right:0;z-index:300;background:#c0392b;color:#fff;text-align:center;padding:5px;font-size:11px;font-weight:700}
+/* FOLDER PICKER */
+#fp-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9990;display:none;align-items:center;justify-content:center;padding:20px}
+#fp-modal.open{display:flex}
+#fp-box{background:#fff;border-radius:18px;padding:22px;width:100%;max-width:310px}
+.fp-title{color:var(--primary-dark);font-size:16px;font-weight:700;margin-bottom:4px}
+.fp-sub{font-size:11px;color:#666;margin-bottom:14px}
+.fp-btn-row{width:100%;padding:13px;border:none;border-radius:9px;font-family:'Poppins',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px}
+.fp-cancel{width:100%;padding:9px;border:1.5px solid #ccc;border-radius:9px;font-family:'Poppins',sans-serif;font-size:12px;cursor:pointer;background:none;color:#666}
+/* OFFLINE BAR */
+#offline-bar{display:none;position:fixed;top:0;left:0;right:0;z-index:500;background:#c0392b;color:#fff;text-align:center;padding:5px;font-size:11px;font-weight:700}
+/* MAIN */
 #mainApp{display:none}
 .top-nav{background:linear-gradient(135deg,var(--primary-dark),var(--primary));padding:12px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.2)}
 .nav-brand{display:flex;align-items:center;gap:10px}
-.nav-icon{font-size:24px}
 .nav-title{color:#fff;font-size:15px;font-weight:700;line-height:1.2}
 .nav-sub{color:rgba(255,255,255,0.7);font-size:10px}
 .nav-actions{display:flex;gap:6px}
-.nav-btn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:#fff;padding:6px 10px;border-radius:8px;font-size:11px;font-family:'Poppins',sans-serif;cursor:pointer;display:flex;align-items:center;gap:4px}
+.nav-btn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:#fff;padding:6px 10px;border-radius:8px;font-size:11px;font-family:'Poppins',sans-serif;cursor:pointer}
 .bottom-tabs{position:fixed;bottom:0;left:0;right:0;background:var(--primary-dark);display:flex;z-index:100;box-shadow:0 -2px 12px rgba(0,0,0,0.2)}
 .tab-btn{flex:1;padding:9px 4px 7px;background:none;border:none;color:rgba(255,255,255,0.5);font-size:9px;font-family:'Poppins',sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;border-top:3px solid transparent}
-.tab-btn .tab-icon{font-size:19px}
+.tab-btn .ti{font-size:19px}
 .tab-btn.active{color:#FFB300;border-top-color:#FFB300}
 .page-content{padding:14px;padding-bottom:80px}
-.page{display:none}
-.page.active{display:block}
+.page{display:none}.page.active{display:block}
 .card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);border:1px solid var(--border)}
 .card-title{font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:12px;display:flex;align-items:center;gap:8px;padding-bottom:9px;border-bottom:2px solid var(--bg2)}
 .form-row{margin-bottom:10px}
-.form-label{display:block;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px}
-.form-input,.form-select{width:100%;padding:10px 13px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:'Poppins',sans-serif;color:var(--text);background:#F8FBFF;outline:none;transition:border .2s}
-.form-input:focus,.form-select:focus{border-color:var(--primary)}
+.lbl{display:block;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px}
+.inp,.sel{width:100%;padding:10px 13px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:'Poppins',sans-serif;color:var(--text);background:#F8FBFF;outline:none;transition:border .2s}
+.inp:focus,.sel:focus{border-color:var(--primary)}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.btn{padding:11px 18px;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;font-family:'Poppins',sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:transform .15s}
+.btn{padding:11px 18px;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;font-family:'Poppins',sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:transform .15s;width:100%}
 .btn:active{transform:scale(0.97)}
-.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;width:100%}
-.btn-danger{background:linear-gradient(135deg,#EF5350,var(--danger));color:#fff}
-.btn-accent{background:linear-gradient(135deg,var(--accent-light),var(--accent));color:#fff}
-.btn-outline{background:transparent;border:2px solid var(--primary);color:var(--primary)}
-.btn-sm{padding:7px 11px;font-size:12px;border-radius:8px}
+.btn-p{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff}
+.btn-d{background:linear-gradient(135deg,#EF5350,var(--danger));color:#fff}
+.btn-a{background:linear-gradient(135deg,var(--accent-light),var(--accent));color:#fff}
+.btn-o{background:transparent;border:2px solid var(--primary);color:var(--primary)}
+.btn-sm{padding:7px 11px;font-size:12px;border-radius:8px;width:auto}
 .fee-item{background:linear-gradient(135deg,#F8FBFF,#EFF7FF);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 13px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
-.fee-item-name{font-size:13px;font-weight:700;color:var(--primary-dark)}
-.fee-item-school{font-size:11px;color:var(--text2);margin-top:2px}
-.fee-item-total{font-size:15px;font-weight:800;color:var(--accent)}
-.fee-item-date{font-size:10px;color:var(--text2);text-align:right}
-.report-table-wrap{overflow-x:auto}
-.report-table{width:100%;border-collapse:collapse;font-size:12px;min-width:500px}
-.report-table th{background:var(--primary-dark);color:#fff;padding:9px 7px;text-align:center;font-weight:600;font-size:11px}
-.report-table td{padding:8px 7px;text-align:center;border-bottom:1px solid #E3F2FD}
-.report-table tr:nth-child(even) td{background:#F8FBFF}
-.report-table .total-row td{background:linear-gradient(135deg,#E3F2FD,#BBDEFB);font-weight:800;color:var(--primary-dark);border-top:2px solid var(--primary)}
+.fi-name{font-size:13px;font-weight:700;color:var(--primary-dark)}
+.fi-school{font-size:11px;color:var(--text2);margin-top:2px}
+.fi-total{font-size:15px;font-weight:800;color:var(--accent)}
+.fi-date{font-size:10px;color:var(--text2);text-align:right}
+.report-wrap{overflow-x:auto}
+.report-tbl{width:100%;border-collapse:collapse;font-size:12px;min-width:500px}
+.report-tbl th{background:var(--primary-dark);color:#fff;padding:9px 7px;text-align:center;font-weight:600;font-size:11px}
+.report-tbl td{padding:8px 7px;text-align:center;border-bottom:1px solid #E3F2FD}
+.report-tbl tr:nth-child(even) td{background:#F8FBFF}
+.report-tbl .tot td{background:linear-gradient(135deg,#E3F2FD,#BBDEFB);font-weight:800;color:var(--primary-dark);border-top:2px solid var(--primary)}
 .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .stat-card{background:var(--card);border-radius:var(--radius-sm);padding:12px;border:1px solid var(--border);text-align:center}
-.stat-icon{font-size:22px;margin-bottom:3px}
 .stat-val{font-size:17px;font-weight:800;color:var(--primary-dark)}
 .stat-lbl{font-size:10px;color:var(--text2);margin-top:2px}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end}
-.modal-overlay.open{display:flex}
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end}
+.modal-ov.open{display:flex}
 .modal-box{background:#fff;border-radius:24px 24px 0 0;padding:22px 16px 28px;width:100%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .modal-handle{width:40px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 16px}
-.modal-title{font-size:15px;font-weight:700;color:var(--primary-dark);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.modal-title{font-size:15px;font-weight:700;color:var(--primary-dark);margin-bottom:14px}
 .toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--primary-dark);color:#fff;padding:10px 20px;border-radius:25px;font-size:13px;font-weight:500;z-index:9985;opacity:0;transition:all .3s;white-space:nowrap;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.section-sep{display:flex;align-items:center;gap:10px;margin:14px 0 10px;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px}
-.section-sep::before,.section-sep::after{content:'';flex:1;height:1px;background:var(--border)}
-.action-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-.action-row .btn{flex:1;min-width:90px}
+.sep{display:flex;align-items:center;gap:10px;margin:14px 0 10px;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px}
+.sep::before,.sep::after{content:'';flex:1;height:1px;background:var(--border)}
+.act-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.act-row .btn{flex:1;min-width:90px}
 .prev-card{background:linear-gradient(135deg,#FFF8E1,#FFF3E0);border:1px solid #FFE082;border-radius:var(--radius-sm);padding:11px 13px;margin-bottom:10px}
-.prev-card-title{font-size:11px;font-weight:700;color:var(--accent);margin-bottom:7px;text-transform:uppercase}
+.prev-title{font-size:11px;font-weight:700;color:var(--accent);margin-bottom:7px;text-transform:uppercase}
 .prev-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px dashed #FFE082}
 .prev-row:last-child{border-bottom:none}
-.fee-detail{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F0F4F8;font-size:13px}
-.fee-detail:last-child{border-bottom:none}
-.fee-detail-label{color:var(--text2);font-weight:500}
-.fee-detail-amount{font-weight:700;color:var(--primary-dark)}
-.fee-total-row{display:flex;justify-content:space-between;padding:10px 13px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:var(--radius-sm);margin-top:8px;color:#fff;font-weight:800;font-size:14px}
-#reportDownload{background:#fff;padding:18px;border-radius:var(--radius);border:2px solid var(--border)}
-.print-header{text-align:center;margin-bottom:14px;padding-bottom:10px;border-bottom:3px double var(--primary)}
-.print-header h2{font-size:17px;color:var(--primary-dark);font-weight:800}
-.print-header p{font-size:11px;color:var(--text2)}
+.fd{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F0F4F8;font-size:13px}
+.fd:last-child{border-bottom:none}
+.fd-lbl{color:var(--text2);font-weight:500}
+.fd-amt{font-weight:700;color:var(--primary-dark)}
+.ftot{display:flex;justify-content:space-between;padding:10px 13px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:var(--radius-sm);margin-top:8px;color:#fff;font-weight:800;font-size:14px}
 .no-data{text-align:center;padding:36px 20px;color:var(--text2);font-size:13px}
-.no-data .no-data-icon{font-size:44px;margin-bottom:9px}
 .s-item{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #E3F2FD}
 .s-item:last-child{border-bottom:none}
 .s-title{font-size:13px;font-weight:700;color:var(--text)}
 .s-desc{font-size:11px;color:var(--text2);margin-top:2px}
 .s-btn{padding:7px 13px;border:none;border-radius:8px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;cursor:pointer}
+#sq-form{display:none;margin-top:10px;padding-top:10px;border-top:1px solid #E3F2FD}
 </style>
 </head>
 <body>
 
+<!-- PIN LOCK -->
 <div id="lock-screen">
-  <div class="lock-icons">🚌 🎒 📚 ✏️ 🏫</div>
+  <div class="lock-icons">&#x1F68C; &#x1F392; &#x1F4DA; &#x270F;&#xFE0F; &#x1F3EB;</div>
   <div class="lock-title">Children Fee Manager</div>
-  <div class="lock-sub">School • Van • Tuition • Paper Fund</div>
+  <div class="lock-sub">School &bull; Van &bull; Tuition &bull; Paper Fund</div>
   <div id="pin-entry-ui" style="display:flex;flex-direction:column;align-items:center;gap:10px;">
-    <div class="pin-dots"><div class="pin-dot" id="dot0"></div><div class="pin-dot" id="dot1"></div><div class="pin-dot" id="dot2"></div><div class="pin-dot" id="dot3"></div></div>
-    <div class="pin-mode-lbl" id="pin-mode-label">ENTER PIN</div>
-    <div class="pin-grid">
-      <button class="pin-btn" onclick="pinPress('1')">1</button><button class="pin-btn" onclick="pinPress('2')">2</button><button class="pin-btn" onclick="pinPress('3')">3</button>
-      <button class="pin-btn" onclick="pinPress('4')">4</button><button class="pin-btn" onclick="pinPress('5')">5</button><button class="pin-btn" onclick="pinPress('6')">6</button>
-      <button class="pin-btn" onclick="pinPress('7')">7</button><button class="pin-btn" onclick="pinPress('8')">8</button><button class="pin-btn" onclick="pinPress('9')">9</button>
-      <button class="pin-btn" onclick="pinPress('C')" style="font-size:15px;">&#x2715;</button><button class="pin-btn" onclick="pinPress('0')">0</button><button class="pin-btn" onclick="pinPress('DEL')" style="font-size:15px;">&#x232B;</button>
+    <div class="pin-dots">
+      <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
     </div>
-    <div class="pin-error" id="pin-error"></div>
-    <div class="pin-link" onclick="startChangePin()">&#x1F511; PIN Change Karein</div>
-    <div class="pin-link2" onclick="showForgotPin()">&#x1F513; PIN Bhool Gaye?</div>
+    <div class="pin-mode-lbl" id="pin-lbl">ENTER PIN</div>
+    <div class="pin-grid">
+      <button class="pin-btn" onclick="pp('1')">1</button><button class="pin-btn" onclick="pp('2')">2</button><button class="pin-btn" onclick="pp('3')">3</button>
+      <button class="pin-btn" onclick="pp('4')">4</button><button class="pin-btn" onclick="pp('5')">5</button><button class="pin-btn" onclick="pp('6')">6</button>
+      <button class="pin-btn" onclick="pp('7')">7</button><button class="pin-btn" onclick="pp('8')">8</button><button class="pin-btn" onclick="pp('9')">9</button>
+      <button class="pin-btn" onclick="pp('C')" style="font-size:15px;">&#x2715;</button>
+      <button class="pin-btn" onclick="pp('0')">0</button>
+      <button class="pin-btn" onclick="pp('D')" style="font-size:15px;">&#x232B;</button>
+    </div>
+    <div class="pin-error" id="pin-err"></div>
+    <div class="pin-link" onclick="startChgPin()">&#x1F511; PIN Change Karein</div>
+    <div class="pin-link2" onclick="showForgot()">&#x1F513; PIN Bhool Gaye?</div>
   </div>
   <div id="forgot-pin-section">
-    <div class="fp-q-box" id="fp-question-display">Loading...</div>
-    <input type="text" id="fp-answer" placeholder="Jawab likhein..." autocomplete="off">
-    <button class="fp-btn" onclick="verifyForgotPin()">&#x2705; Verify</button>
-    <div id="fp-error" style="color:#FFB300;font-size:11px;min-height:14px;margin-top:5px;"></div>
-    <span class="fp-back" onclick="hideForgotPin()">&larr; Wapas PIN Screen</span>
+    <div class="fp-q-box" id="fp-q">Loading...</div>
+    <input type="text" id="fp-ans" placeholder="Jawab likhein..." autocomplete="off">
+    <button class="fp-btn" onclick="verifyForgot()">&#x2705; Verify Karein</button>
+    <div id="fp-err" style="color:#FFB300;font-size:11px;min-height:14px;margin-top:5px;"></div>
+    <span class="fp-back" onclick="hideForgot()">&larr; Wapas PIN Screen</span>
   </div>
 </div>
 
-<div id="folder-picker-modal">
+<!-- FOLDER PICKER -->
+<div id="fp-modal">
   <div id="fp-box">
-    <div class="fp-modal-title" id="fp-modal-title">&#x1F4C1; Kahan Save Karein?</div>
-    <div class="fp-modal-sub" id="fp-modal-sub">File save karne ki jagah chunein</div>
-    <button class="fp-modal-btn" style="background:var(--primary);color:white;" onclick="folderPickerAction('download')">&#x1F4E5; Downloads Folder</button>
-    <button class="fp-modal-btn" style="background:var(--success);color:white;" onclick="folderPickerAction('share')">&#x1F4E4; Share / WhatsApp</button>
-    <button class="fp-modal-cancel" onclick="closeFolderPicker()">Baad mein</button>
+    <div class="fp-title" id="fp-title">&#x1F4C1; Kahan Save Karein?</div>
+    <div class="fp-sub" id="fp-sub">File save karne ki jagah chunein</div>
+    <button class="fp-btn-row" style="background:var(--primary);color:#fff;" onclick="fpAction('dl')">&#x1F4E5; Downloads Folder</button>
+    <button class="fp-btn-row" style="background:var(--success);color:#fff;" onclick="fpAction('sh')">&#x1F4E4; Share / WhatsApp</button>
+    <button class="fp-cancel" onclick="closeFP()">Baad mein</button>
   </div>
 </div>
 
-<div id="offline-bar">&#x1F4F5; Offline Mode</div>
+<div id="offline-bar">&#x1F4F5; Offline Mode — Data safe hai</div>
 <div class="toast" id="toast"></div>
 
+<!-- MAIN APP -->
 <div id="mainApp">
   <div class="top-nav">
-    <div class="nav-brand"><span class="nav-icon">&#x1F392;</span><div><div class="nav-title">Fee Manager v2</div><div class="nav-sub">Children School Fees</div></div></div>
+    <div class="nav-brand">
+      <span style="font-size:24px;">&#x1F392;</span>
+      <div><div class="nav-title">Fee Manager v2</div><div class="nav-sub">Children School Fees</div></div>
+    </div>
     <div class="nav-actions">
       <button class="nav-btn" onclick="exportData()">&#x1F4E4;</button>
-      <button class="nav-btn" onclick="document.getElementById('importFile').click()">&#x1F4E5;</button>
-      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+      <button class="nav-btn" onclick="document.getElementById('imp').click()">&#x1F4E5;</button>
+      <input type="file" id="imp" accept=".json" style="display:none" onchange="importData(event)">
       <button class="nav-btn" onclick="lockApp()">&#x1F512;</button>
     </div>
   </div>
+
   <div class="page-content">
-    <div class="page active" id="pageEntry">
+    <!-- ENTRY -->
+    <div class="page active" id="pg-entry">
       <div class="card">
         <div class="card-title">&#x1F4DD; New Fee Entry</div>
-        <div class="form-row"><label class="form-label">&#x1F4C5; Date</label><input type="text" class="form-input" id="entryDate" placeholder="DD/MM/YY"></div>
-        <div class="form-row"><label class="form-label">&#x1F466; Child Name</label><div style="display:flex;gap:8px;"><select class="form-select" id="childSelect" style="flex:1" onchange="loadPrevMonth()"><option value="">-- Select Child --</option></select><button class="btn btn-outline btn-sm" onclick="showAddChild()">+ New</button></div></div>
-        <div class="form-row"><label class="form-label">&#x1F3EB; School Name</label><input type="text" class="form-input" id="entrySchool" placeholder="School name"></div>
-        <div id="prevMonthCard" style="display:none">
-          <div class="section-sep">&#x1F4CB; Last Month Reference</div>
-          <div class="prev-card"><div class="prev-card-title">&#x23EE; Previous Entry</div>
-            <div class="prev-row"><span>School Fee</span><span id="prevSchoolFee">-</span></div>
-            <div class="prev-row"><span>Van Fee</span><span id="prevVanFee">-</span></div>
-            <div class="prev-row"><span>Tuition Fee</span><span id="prevTuitionFee">-</span></div>
-            <div class="prev-row"><span>Paper Fund</span><span id="prevPaperFund">-</span></div>
+        <div class="form-row"><label class="lbl">&#x1F4C5; Date</label><input type="text" class="inp" id="eDate" placeholder="DD/MM/YY"></div>
+        <div class="form-row"><label class="lbl">&#x1F466; Child Name</label>
+          <div style="display:flex;gap:8px;">
+            <select class="sel" id="eStu" style="flex:1" onchange="loadPrev()"><option value="">-- Select Child --</option></select>
+            <button class="btn btn-o btn-sm" onclick="showAddStu()">+ New</button>
           </div>
         </div>
-        <div class="section-sep">&#x1F4B0; Fee Breakdown</div>
-        <div class="form-grid">
-          <div class="form-row"><label class="form-label">&#x1F3EB; School Fee</label><input type="number" class="form-input" id="entrySchoolFee" placeholder="0"></div>
-          <div class="form-row"><label class="form-label">&#x1F68C; Van Fee</label><input type="number" class="form-input" id="entryVanFee" placeholder="0"></div>
-          <div class="form-row"><label class="form-label">&#x1F4D6; Tuition Fee</label><input type="number" class="form-input" id="entryTuitionFee" placeholder="0"></div>
-          <div class="form-row"><label class="form-label">&#x1F4C4; Paper Fund</label><input type="number" class="form-input" id="entryPaperFund" placeholder="0"></div>
+        <div class="form-row"><label class="lbl">&#x1F3EB; School Name</label><input type="text" class="inp" id="eSchool" placeholder="School name"></div>
+        <div id="prevCard" style="display:none">
+          <div class="sep">&#x1F4CB; Last Month Reference</div>
+          <div class="prev-card"><div class="prev-title">&#x23EE; Previous Entry</div>
+            <div class="prev-row"><span>School Fee</span><span id="pSF">-</span></div>
+            <div class="prev-row"><span>Van Fee</span><span id="pVF">-</span></div>
+            <div class="prev-row"><span>Tuition</span><span id="pTF">-</span></div>
+            <div class="prev-row"><span>Paper Fund</span><span id="pPF">-</span></div>
+          </div>
         </div>
-        <div class="fee-total-row"><span>&#x1F4B3; Total Due</span><span id="liveTotalAmt">PKR 0</span></div>
-        <div style="margin-top:12px;"><button class="btn btn-primary" onclick="saveEntry()">&#x1F4BE; SAVE ENTRY</button></div>
+        <div class="sep">&#x1F4B0; Fee Breakdown</div>
+        <div class="form-grid">
+          <div class="form-row"><label class="lbl">School Fee</label><input type="number" class="inp" id="eSF" placeholder="0" oninput="updTotal()"></div>
+          <div class="form-row"><label class="lbl">Van Fee</label><input type="number" class="inp" id="eVF" placeholder="0" oninput="updTotal()"></div>
+          <div class="form-row"><label class="lbl">Tuition Fee</label><input type="number" class="inp" id="eTF" placeholder="0" oninput="updTotal()"></div>
+          <div class="form-row"><label class="lbl">Paper Fund</label><input type="number" class="inp" id="ePF" placeholder="0" oninput="updTotal()"></div>
+        </div>
+        <div class="ftot"><span>&#x1F4B3; Total Due</span><span id="eTotal">PKR 0</span></div>
+        <div style="margin-top:12px;"><button class="btn btn-p" onclick="saveEntry()">&#x1F4BE; SAVE ENTRY</button></div>
       </div>
-      <div class="card"><div class="card-title">&#x1F550; Recent Entries</div><div id="recentList"><div class="no-data"><div class="no-data-icon">&#x1F4ED;</div>No entries yet</div></div></div>
+      <div class="card"><div class="card-title">&#x1F550; Recent Entries</div><div id="recentList"><div class="no-data">No entries yet</div></div></div>
     </div>
-    <div class="page" id="pageReport">
+
+    <!-- REPORT -->
+    <div class="page" id="pg-report">
       <div class="card">
         <div class="card-title">&#x1F4CA; Fee Reports</div>
         <div class="form-grid" style="margin-bottom:10px;">
-          <div><label class="form-label">&#x1F4C5; Month</label><select class="form-select" id="reportMonth" onchange="loadReport()"><option value="">All Months</option></select></div>
-          <div><label class="form-label">&#x1F466; Student</label><select class="form-select" id="reportStudent" onchange="loadReport()"><option value="">All Students</option></select></div>
+          <div><label class="lbl">Month</label><select class="sel" id="rMonth" onchange="loadReport()"><option value="">All Months</option></select></div>
+          <div><label class="lbl">Student</label><select class="sel" id="rStu" onchange="loadReport()"><option value="">All Students</option></select></div>
         </div>
         <div class="stats-grid">
-          <div class="stat-card"><div class="stat-icon">&#x1F465;</div><div class="stat-val" id="statChildren">0</div><div class="stat-lbl">Students</div></div>
-          <div class="stat-card"><div class="stat-icon">&#x1F4B0;</div><div class="stat-val" id="statTotal">PKR 0</div><div class="stat-lbl">Total Due</div></div>
+          <div class="stat-card"><div style="font-size:20px;">&#x1F465;</div><div class="stat-val" id="stStu">0</div><div class="stat-lbl">Students</div></div>
+          <div class="stat-card"><div style="font-size:20px;">&#x1F4B0;</div><div class="stat-val" id="stTot">PKR 0</div><div class="stat-lbl">Total Due</div></div>
         </div>
-        <div class="action-row"><button class="btn btn-accent btn-sm" onclick="downloadReport()">&#x1F4F8; Download Image</button></div>
+        <div class="act-row"><button class="btn btn-a btn-sm" onclick="dlReport()">&#x1F4F8; Download Image</button></div>
       </div>
       <div class="card">
-        <div id="reportDownload">
-          <div class="print-header"><div style="font-size:26px;">&#x1F392;</div><h2>Children Fee Report</h2><p id="reportHeaderDate">&#x2014;</p></div>
-          <div class="report-table-wrap"><table class="report-table"><thead><tr><th>#</th><th>Date</th><th>Child</th><th>School</th><th>School Fee</th><th>Van</th><th>Tuition</th><th>Paper</th><th>Total</th></tr></thead><tbody id="reportBody"><tr><td colspan="9" class="no-data">No data</td></tr></tbody></table></div>
+        <div id="rptDownload">
+          <div style="text-align:center;margin-bottom:12px;padding-bottom:10px;border-bottom:3px double var(--primary);">
+            <div style="font-size:26px;">&#x1F392;</div><h2 style="font-size:17px;color:var(--primary-dark);font-weight:800;">Children Fee Report</h2>
+            <p id="rptHdr" style="font-size:11px;color:var(--text2);">&#x2014;</p>
+          </div>
+          <div class="report-wrap"><table class="report-tbl"><thead><tr><th>#</th><th>Date</th><th>Child</th><th>School</th><th>School Fee</th><th>Van</th><th>Tuition</th><th>Paper</th><th>Total</th></tr></thead><tbody id="rptBody"><tr><td colspan="9" class="no-data">No data</td></tr></tbody></table></div>
         </div>
       </div>
     </div>
-    <div class="page" id="pageStudents">
-      <div class="card"><div class="card-title">&#x1F466; Students List</div><button class="btn btn-primary" onclick="showAddChild()" style="margin-bottom:12px;">+ Add New Student</button><div id="studentsList"><div class="no-data"><div class="no-data-icon">&#x1F464;</div>No students added</div></div></div>
+
+    <!-- STUDENTS -->
+    <div class="page" id="pg-students">
+      <div class="card"><div class="card-title">&#x1F466; Students List</div>
+        <button class="btn btn-p" onclick="showAddStu()" style="margin-bottom:12px;">+ Add New Student</button>
+        <div id="stuList"><div class="no-data">No students added</div></div>
+      </div>
     </div>
-    <div class="page" id="pageSettings">
+
+    <!-- SETTINGS -->
+    <div class="page" id="pg-settings">
       <div class="card">
         <div class="card-title">&#x1F510; PIN Settings</div>
-        <div class="s-item"><div><div class="s-title">PIN Change</div><div class="s-desc">4-digit naya PIN</div></div><button class="s-btn" style="background:#FFF3E0;color:#E65100;" onclick="startChangePin();document.getElementById('lock-screen').classList.remove('hidden');">&#x270F;</button></div>
-        <div class="s-item"><div><div class="s-title">Secret Question</div><div class="s-desc" id="sq-status-desc">Abhi set nahi</div></div><button class="s-btn" style="background:#E8EAF6;color:#283593;" onclick="toggleSQForm()">&#x2699;</button></div>
+        <div class="s-item"><div><div class="s-title">PIN Change</div><div class="s-desc">4-digit naya PIN</div></div><button class="s-btn" style="background:#FFF3E0;color:#E65100;" onclick="startChgPin();document.getElementById('lock-screen').classList.remove('hidden');">&#x270F;</button></div>
+        <div class="s-item"><div><div class="s-title">&#x1F511; Secret Question</div><div class="s-desc" id="sq-desc">Set nahi</div></div><button class="s-btn" style="background:#E8EAF6;color:#283593;" onclick="toggleSQForm()">&#x2699;</button></div>
         <div class="s-item"><div><div class="s-title">Lock App</div></div><button class="s-btn" style="background:#FFEBEE;color:#C62828;" onclick="lockApp()">&#x1F512;</button></div>
-        <div id="sq-form" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid #E3F2FD;">
-          <label class="form-label">Secret Sawaal</label>
-          <select class="form-select" id="sq-select" style="margin-bottom:8px;"><option value="">-- Sawaal chunein --</option><option>Aapki ammi ka naam kya hai?</option><option>Aapke school ka naam kya tha?</option><option>Aapka pehla dost kaun tha?</option><option>Aapke ghar ka mohalla kaunsa hai?</option><option>Aapka favorite khana kya hai?</option><option>Aapki pehli bike ya car?</option><option>Aapke abbu ka pehla naam?</option><option>Aapka gaon ya shehar kaunsa hai?</option></select>
-          <label class="form-label">Jawab</label>
-          <input type="text" class="form-input" id="sq-answer" placeholder="Jawab yaad rakhein!" maxlength="50" style="margin-bottom:8px;">
-          <div style="display:flex;gap:8px;"><button class="btn btn-primary" style="flex:1" onclick="saveSQ()">&#x1F4BE; Save</button><button class="btn btn-outline" style="flex:1" onclick="document.getElementById('sq-form').style.display='none'">Cancel</button></div>
+        <div id="sq-form">
+          <label class="lbl" style="margin-top:10px;">Secret Sawaal</label>
+          <select class="sel" id="sq-sel" style="margin-bottom:8px;"><option value="">-- Sawaal chunein --</option><option>Aapki ammi ka naam kya hai?</option><option>Aapke school ka naam kya tha?</option><option>Aapka pehla dost kaun tha?</option><option>Aapke ghar ka mohalla kaunsa hai?</option><option>Aapka favorite khana kya hai?</option><option>Aapki pehli bike ya car?</option><option>Aapke abbu ka pehla naam?</option><option>Aapka gaon ya shehar?</option></select>
+          <label class="lbl">Jawab</label>
+          <input type="text" class="inp" id="sq-ans" placeholder="Jawab — yaad rakhein!" maxlength="50" style="margin-bottom:8px;">
+          <div style="display:flex;gap:8px;"><button class="btn btn-p" style="flex:1" onclick="saveSQ()">&#x1F4BE; Save</button><button class="btn btn-o" style="flex:1" onclick="document.getElementById('sq-form').style.display='none'">Cancel</button></div>
         </div>
       </div>
       <div class="card">
-        <div class="card-title">&#x1F4BE; Data Backup</div>
+        <div class="card-title">&#x1F4BE; Backup</div>
         <div class="s-item"><div><div class="s-title">Export</div><div class="s-desc">JSON backup</div></div><button class="s-btn" style="background:#E8F5E9;color:#2E7D32;" onclick="exportData()">Export</button></div>
-        <div class="s-item"><div><div class="s-title">Import</div><div class="s-desc">Restore backup</div></div><button class="s-btn" style="background:#E3F2FD;color:#1565C0;" onclick="document.getElementById('importFile').click()">Import</button></div>
+        <div class="s-item"><div><div class="s-title">Import</div><div class="s-desc">Restore backup</div></div><button class="s-btn" style="background:#E3F2FD;color:#1565C0;" onclick="document.getElementById('imp').click()">Import</button></div>
       </div>
       <div class="card">
-        <div class="card-title">&#x2139; App Info</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.9;"><b>Children Fee Manager v2</b><br>&#x2705; SQL.js Local DB<br>&#x2705; PIN Lock (IndexedDB)<br>&#x2705; Secret Question<br>&#x2705; 100% Offline<br>FGI - Ali Pur Chattha</div>
+        <div class="card-title">&#x2139; Info</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.9;"><b>Children Fee Manager v2</b><br>&#x2705; Pure localStorage — No CDN needed<br>&#x2705; PIN Lock (IndexedDB)<br>&#x2705; Secret Question Recovery<br>&#x2705; 100% Offline<br>FGI — Ali Pur Chattha</div>
       </div>
     </div>
   </div>
+
   <div class="bottom-tabs">
-    <button class="tab-btn active" onclick="showPage('entry',this)"><span class="tab-icon">&#x1F4DD;</span>Entry</button>
-    <button class="tab-btn" onclick="showPage('report',this)"><span class="tab-icon">&#x1F4CA;</span>Report</button>
-    <button class="tab-btn" onclick="showPage('students',this)"><span class="tab-icon">&#x1F465;</span>Students</button>
-    <button class="tab-btn" onclick="showPage('settings',this)"><span class="tab-icon">&#x2699;</span>Settings</button>
+    <button class="tab-btn active" onclick="showPg('entry',this)"><span class="ti">&#x1F4DD;</span>Entry</button>
+    <button class="tab-btn" onclick="showPg('report',this)"><span class="ti">&#x1F4CA;</span>Report</button>
+    <button class="tab-btn" onclick="showPg('students',this)"><span class="ti">&#x1F465;</span>Students</button>
+    <button class="tab-btn" onclick="showPg('settings',this)"><span class="ti">&#x2699;</span>Settings</button>
   </div>
 </div>
 
-<div class="modal-overlay" id="addChildModal">
+<!-- MODALS -->
+<div class="modal-ov" id="addStuModal">
   <div class="modal-box"><div class="modal-handle"></div><div class="modal-title">&#x1F466; Add / Edit Student</div>
-    <input type="hidden" id="editStudentId">
-    <div class="form-row"><label class="form-label">Child Name</label><input type="text" class="form-input" id="newChildName" placeholder="Enter child name"></div>
-    <div class="form-row"><label class="form-label">School Name</label><input type="text" class="form-input" id="newChildSchool" placeholder="School name"></div>
-    <div class="action-row"><button class="btn btn-primary" onclick="saveChild()">&#x1F4BE; Save Student</button><button class="btn btn-outline" onclick="closeModal('addChildModal')">Cancel</button></div>
+    <input type="hidden" id="editStuId">
+    <div class="form-row"><label class="lbl">Child Name</label><input type="text" class="inp" id="stuName" placeholder="Enter child name"></div>
+    <div class="form-row"><label class="lbl">School Name</label><input type="text" class="inp" id="stuSchool" placeholder="School name"></div>
+    <div class="act-row"><button class="btn btn-p" onclick="saveStu()">&#x1F4BE; Save</button><button class="btn btn-o" onclick="closeMod('addStuModal')">Cancel</button></div>
   </div>
 </div>
-<div class="modal-overlay" id="viewEntryModal">
-  <div class="modal-box"><div class="modal-handle"></div><div class="modal-title">&#x1F4B3; Fee Entry Detail</div>
-    <div id="entryDetailContent"></div><div class="action-row" id="entryDetailActions"></div>
+<div class="modal-ov" id="viewEntryModal">
+  <div class="modal-box"><div class="modal-handle"></div><div class="modal-title">&#x1F4B3; Fee Detail</div>
+    <div id="entryDetail"></div><div class="act-row" id="entryActs"></div>
   </div>
 </div>
 
 <script>
-const IDB_NAME='ChildFeeApp',IDB_STORE='appdata';
+// ============================================================
+//  DATA STORE — Pure localStorage JSON (NO SQL.js, NO CDN)
+// ============================================================
+const STORE = {
+  getStudents(){ try{ return JSON.parse(localStorage.getItem('cfm_students')||'[]'); }catch(e){ return []; } },
+  saveStudents(d){ localStorage.setItem('cfm_students', JSON.stringify(d)); },
+  getEntries(){ try{ return JSON.parse(localStorage.getItem('cfm_entries')||'[]'); }catch(e){ return []; } },
+  saveEntries(d){ localStorage.setItem('cfm_entries', JSON.stringify(d)); },
+  nextId(key){ const n=(parseInt(localStorage.getItem(key)||'0')+1); localStorage.setItem(key,n); return n; }
+};
+
+// ============================================================
+//  IndexedDB — PIN & Secret Q only
+// ============================================================
+const IDB='ChildFeeApp2', IDB_ST='sec';
 let idb=null;
-function openIDB(){return new Promise((res,rej)=>{const req=indexedDB.open(IDB_NAME,1);req.onupgradeneeded=e=>e.target.result.createObjectStore(IDB_STORE);req.onsuccess=e=>{idb=e.target.result;res(idb);};req.onerror=()=>rej(req.error);});}
-const idbSave=(k,v)=>new Promise(res=>{if(!idb){res();return;}const tx=idb.transaction(IDB_STORE,'readwrite');tx.objectStore(IDB_STORE).put(v,k);tx.oncomplete=()=>res();tx.onerror=()=>res();});
-const idbLoad=(k)=>new Promise(res=>{if(!idb){res(null);return;}const tx=idb.transaction(IDB_STORE,'readonly');const req=tx.objectStore(IDB_STORE).get(k);req.onsuccess=()=>res(req.result!==undefined?req.result:null);req.onerror=()=>res(null);});
-async function getPin(){const p=await idbLoad('pin');return p||localStorage.getItem('cfm_pin')||'1234';}
-async function savePin(pin){await idbSave('pin',pin);try{localStorage.setItem('cfm_pin',pin);}catch(e){}}
-async function saveSQData(q,a){const d=JSON.stringify({q,a:a.toLowerCase().trim()});await idbSave('secret_q',d);try{localStorage.setItem('cfm_sq',d);}catch(e){}}
-async function loadSQData(){const raw=await idbLoad('secret_q')||localStorage.getItem('cfm_sq');if(!raw)return null;try{return JSON.parse(raw);}catch(e){return null;}}
-async function saveSQ(){const q=document.getElementById('sq-select').value;const a=document.getElementById('sq-answer').value.trim();if(!q){toast('Sawaal chunein!');return;}if(!a||a.length<2){toast('Jawab likhein!');return;}await saveSQData(q,a);document.getElementById('sq-answer').value='';document.getElementById('sq-form').style.display='none';toast('Secret question save ho gaya!');updateSQStatus();}
-async function updateSQStatus(){const d=await loadSQData();const el=document.getElementById('sq-status-desc');if(el)el.innerHTML=d?'Set: <b>'+d.q+'</b>':'Set nahi';}
-function toggleSQForm(){const f=document.getElementById('sq-form');f.style.display=f.style.display==='none'?'block':'none';}
-let pinBuf='',pinMode='enter',newPinTmp='';
-async function pinPress(k){
-  if(k==='C')pinBuf='';else if(k==='DEL')pinBuf=pinBuf.slice(0,-1);else if(pinBuf.length<4)pinBuf+=k;
-  updDots();document.getElementById('pin-error').textContent='';
-  if(pinBuf.length===4){const cur=await getPin();setTimeout(async()=>{
-    if(pinMode==='enter'){if(pinBuf===cur){
-      document.getElementById('lock-screen').classList.add('hidden');
-      document.getElementById('mainApp').style.display='block';
-      initApp().catch(e=>{console.error('initApp error:',e);});
-    }else{document.getElementById('pin-error').textContent='Wrong PIN!';pinBuf='';updDots();}}
-    else if(pinMode==='set-new'){newPinTmp=pinBuf;pinBuf='';pinMode='confirm-new';document.getElementById('pin-mode-label').textContent='CONFIRM NEW PIN';updDots();}
-    else if(pinMode==='confirm-new'){if(pinBuf===newPinTmp){await savePin(pinBuf);const e=document.getElementById('pin-error');e.style.color='#69f0ae';e.textContent='PIN saved!';setTimeout(()=>{pinMode='enter';pinBuf='';document.getElementById('pin-mode-label').textContent='ENTER PIN';e.style.color='#FFB300';e.textContent='';updDots();document.getElementById('lock-screen').classList.add('hidden');},1200);}else{document.getElementById('pin-error').textContent='PINs match nahi!';pinMode='set-new';pinBuf='';document.getElementById('pin-mode-label').textContent='SET NEW PIN';updDots();}}
-  },150);}
-}
-function updDots(){for(let i=0;i<4;i++)document.getElementById('dot'+i).classList.toggle('filled',i<pinBuf.length);}
-function startChangePin(){pinMode='set-new';pinBuf='';newPinTmp='';document.getElementById('pin-mode-label').textContent='SET NEW PIN';document.getElementById('pin-error').textContent='';updDots();}
-function lockApp(){pinMode='enter';pinBuf='';document.getElementById('pin-mode-label').textContent='ENTER PIN';document.getElementById('pin-error').textContent='';document.getElementById('pin-error').style.color='#FFB300';updDots();document.getElementById('lock-screen').classList.remove('hidden');document.getElementById('mainApp').style.display='none';document.getElementById('forgot-pin-section').style.display='none';document.getElementById('pin-entry-ui').style.display='flex';}
-async function showForgotPin(){const d=await loadSQData();if(!d){toast('Secret question set nahi (Settings mein karein)!');return;}document.getElementById('pin-entry-ui').style.display='none';document.getElementById('forgot-pin-section').style.display='block';document.getElementById('fp-question-display').textContent='? '+d.q;document.getElementById('fp-answer').value='';document.getElementById('fp-error').textContent='';}
-function hideForgotPin(){document.getElementById('forgot-pin-section').style.display='none';document.getElementById('pin-entry-ui').style.display='flex';}
-async function verifyForgotPin(){const d=await loadSQData();const ans=document.getElementById('fp-answer').value.trim().toLowerCase();const errEl=document.getElementById('fp-error');if(!ans){errEl.textContent='Jawab likhein!';return;}if(!d){errEl.textContent='Question nahi mila!';return;}if(ans===d.a||d.a.includes(ans)||ans.includes(d.a)){errEl.style.color='#69f0ae';errEl.textContent='Sahi jawab!';setTimeout(()=>{hideForgotPin();setTimeout(()=>{document.getElementById('pin-mode-label').textContent='SET NEW PIN';document.getElementById('pin-error').style.color='#69f0ae';document.getElementById('pin-error').textContent='Naya PIN set karein';pinMode='set-new';pinBuf='';newPinTmp='';updDots();},200);},600);}else{errEl.style.color='#FFB300';errEl.textContent='Jawab galat!';}}
-let _fpBlob=null,_fpFilename=null;
-function openFolderPicker(title,sub,blob,filename){_fpBlob=blob;_fpFilename=filename;document.getElementById('fp-modal-title').textContent=title||'Kahan Save Karein?';document.getElementById('fp-modal-sub').textContent=sub||'';document.getElementById('folder-picker-modal').classList.add('open');}
-function closeFolderPicker(){document.getElementById('folder-picker-modal').classList.remove('open');_fpBlob=null;_fpFilename=null;}
-function folderPickerAction(action){const blob=_fpBlob;const fname=_fpFilename;closeFolderPicker();if(!blob){toast('File nahi mili');return;}if(action==='download'){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=fname;document.body.appendChild(a);a.click();setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},2000);toast('Downloads mein save!');}else if(action==='share'){const file=new File([blob],fname,{type:blob.type});if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:'Fee Manager'}).catch(e=>{if(e.name!=='AbortError')toast('Share error');});}else{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=fname;document.body.appendChild(a);a.click();setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},2000);}}}
-let db=null,SQL=null,editingEntryId=null;
-async function initApp(){
-  try{
-    if(!SQL){
-      // Show loading on lock screen pin error area
-      const errEl=document.getElementById('pin-error');
-      if(errEl){errEl.style.color='#69f0ae';errEl.textContent='⏳ Loading...';}
-      SQL = await initSqlJs({locateFile:f=>`https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}`});
-      if(errEl){errEl.textContent='';}
-    }
-    loadDBFromStorage();
-    createTables();
-    setTodayDate();
-    refreshAll();
-    setupLiveTotal();
-    await updateSQStatus();
-  }catch(err){
-    console.error('initApp error:',err);
-    alert('Database error: ' + err.message + '\nPage refresh karein!');
+function openIDB(){ return new Promise((res,rej)=>{ const r=indexedDB.open(IDB,1); r.onupgradeneeded=e=>e.target.result.createObjectStore(IDB_ST); r.onsuccess=e=>{idb=e.target.result;res();}; r.onerror=()=>rej(); }); }
+const idbSet=(k,v)=>new Promise(res=>{ if(!idb){res();return;} const tx=idb.transaction(IDB_ST,'readwrite'); tx.objectStore(IDB_ST).put(v,k); tx.oncomplete=()=>res(); tx.onerror=()=>res(); });
+const idbGet=(k)=>new Promise(res=>{ if(!idb){res(null);return;} const tx=idb.transaction(IDB_ST,'readonly'); const r=tx.objectStore(IDB_ST).get(k); r.onsuccess=()=>res(r.result??null); r.onerror=()=>res(null); });
+
+async function getPin(){ const p=await idbGet('pin'); return p||localStorage.getItem('cfm_pin')||'1234'; }
+async function setPin(p){ await idbSet('pin',p); localStorage.setItem('cfm_pin',p); }
+async function getSQ(){ const r=await idbGet('sq')||localStorage.getItem('cfm_sq'); return r?JSON.parse(r):null; }
+async function setSQ(q,a){ const d=JSON.stringify({q,a:a.toLowerCase().trim()}); await idbSet('sq',d); localStorage.setItem('cfm_sq',d); }
+
+// ============================================================
+//  PIN LOGIC
+// ============================================================
+let pinBuf='',pinMode='enter',newTmp='';
+
+async function pp(k){
+  if(k==='C') pinBuf='';
+  else if(k==='D') pinBuf=pinBuf.slice(0,-1);
+  else if(pinBuf.length<4) pinBuf+=k;
+  updDots(); setErr('');
+  if(pinBuf.length===4){
+    const cur=await getPin();
+    setTimeout(async()=>{
+      if(pinMode==='enter'){
+        if(pinBuf===cur){ unlock(); }
+        else{ setErr('❌ Galat PIN!'); pinBuf=''; updDots(); }
+      } else if(pinMode==='new'){
+        newTmp=pinBuf; pinBuf=''; pinMode='confirm';
+        document.getElementById('pin-lbl').textContent='CONFIRM NEW PIN'; updDots();
+      } else if(pinMode==='confirm'){
+        if(pinBuf===newTmp){
+          await setPin(pinBuf);
+          setErr('✅ PIN saved!'); document.getElementById('pin-err').style.color='#69f0ae';
+          setTimeout(()=>{ pinMode='enter'; pinBuf=''; document.getElementById('pin-lbl').textContent='ENTER PIN'; setErr(''); updDots(); document.getElementById('lock-screen').classList.add('hidden'); },1200);
+        } else {
+          setErr('❌ Match nahi!'); pinMode='new'; pinBuf='';
+          document.getElementById('pin-lbl').textContent='SET NEW PIN'; updDots();
+        }
+      }
+    },150);
   }
 }
-function loadDBFromStorage(){const saved=localStorage.getItem('feeManagerDB');if(saved){const arr=new Uint8Array(JSON.parse(saved));db=new SQL.Database(arr);}else db=new SQL.Database();}
-function saveDBToStorage(){const data=db.export();localStorage.setItem('feeManagerDB',JSON.stringify(Array.from(data)));}
-function createTables(){db.run(`CREATE TABLE IF NOT EXISTS students (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, school TEXT)`);db.run(`CREATE TABLE IF NOT EXISTS fee_entries (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, student_id INTEGER, school_name TEXT, school_fee REAL DEFAULT 0, van_fee REAL DEFAULT 0, tuition_fee REAL DEFAULT 0, paper_fund REAL DEFAULT 0, total REAL DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)`);saveDBToStorage();}
-function setTodayDate(){const d=new Date();const dd=String(d.getDate()).padStart(2,'0');const mm=String(d.getMonth()+1).padStart(2,'0');const yy=String(d.getFullYear()).slice(-2);document.getElementById('entryDate').value=`${dd}/${mm}/${yy}`;}
-let toastT;function toast(msg,dur=2500){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),dur);}
-function showPage(page,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById('page'+page.charAt(0).toUpperCase()+page.slice(1)).classList.add('active');btn.classList.add('active');if(page==='report')loadReport();if(page==='students')loadStudentsList();if(page==='settings')updateSQStatus();}
-function showModal(id){document.getElementById(id).classList.add('open');}
-function closeModal(id){document.getElementById(id).classList.remove('open');}
-function refreshAll(){loadChildrenDropdown();loadRecentEntries();populateReportFilters();}
-function fmtPKR(n){return 'PKR '+Number(n||0).toLocaleString();}
-function setupLiveTotal(){['entrySchoolFee','entryVanFee','entryTuitionFee','entryPaperFund'].forEach(id=>{document.getElementById(id).addEventListener('input',updateLiveTotal);});}
-function updateLiveTotal(){const sf=parseFloat(document.getElementById('entrySchoolFee').value)||0;const vf=parseFloat(document.getElementById('entryVanFee').value)||0;const tf=parseFloat(document.getElementById('entryTuitionFee').value)||0;const pf=parseFloat(document.getElementById('entryPaperFund').value)||0;document.getElementById('liveTotalAmt').textContent=fmtPKR(sf+vf+tf+pf);}
-function loadChildrenDropdown(){const sel=document.getElementById('childSelect');const rSel=document.getElementById('reportStudent');const rows=db.exec("SELECT id, name FROM students ORDER BY name");let html='<option value="">-- Select Child --</option>';let rHtml='<option value="">All Students</option>';if(rows.length&&rows[0].values.length){rows[0].values.forEach(r=>{html+=`<option value="${r[0]}">${r[1]}</option>`;rHtml+=`<option value="${r[0]}">${r[1]}</option>`;});}sel.innerHTML=html;rSel.innerHTML=rHtml;}
-function showAddChild(id=null){document.getElementById('editStudentId').value='';document.getElementById('newChildName').value='';document.getElementById('newChildSchool').value='';if(id){const r=db.exec(`SELECT id,name,school FROM students WHERE id=${id}`);if(r.length&&r[0].values.length){const row=r[0].values[0];document.getElementById('editStudentId').value=row[0];document.getElementById('newChildName').value=row[1];document.getElementById('newChildSchool').value=row[2]||'';};}showModal('addChildModal');}
-function saveChild(){const name=document.getElementById('newChildName').value.trim();const school=document.getElementById('newChildSchool').value.trim();const editId=document.getElementById('editStudentId').value;if(!name){toast('Name required!');return;}if(editId){db.run(`UPDATE students SET name=?,school=? WHERE id=?`,[name,school,editId]);toast('Student updated!');}else{db.run(`INSERT INTO students (name,school) VALUES (?,?)`,[name,school]);toast('Student added!');}saveDBToStorage();closeModal('addChildModal');loadChildrenDropdown();loadStudentsList();}
-function loadStudentsList(){const rows=db.exec("SELECT id, name, school FROM students ORDER BY name");const el=document.getElementById('studentsList');if(!rows.length||!rows[0].values.length){el.innerHTML=`<div class="no-data"><div class="no-data-icon">👤</div>No students added</div>`;return;}el.innerHTML=rows[0].values.map(r=>{const cnt=db.exec(`SELECT COUNT(*) FROM fee_entries WHERE student_id=${r[0]}`);const c=cnt[0]?.values[0][0]||0;return`<div class="fee-item" style="cursor:default"><div><div class="fee-item-name">👦 ${r[1]}</div><div class="fee-item-school">🏫 ${r[2]||'—'} | ${c} entries</div></div><div style="display:flex;gap:6px;"><button class="btn btn-outline btn-sm" onclick="showAddChild(${r[0]})">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteStudent(${r[0]})">🗑️</button></div></div>`;}).join('');}
-function deleteStudent(id){if(!confirm('Delete this student and all entries?'))return;db.run(`DELETE FROM students WHERE id=${id}`);db.run(`DELETE FROM fee_entries WHERE student_id=${id}`);saveDBToStorage();toast('Deleted!');loadStudentsList();loadChildrenDropdown();loadRecentEntries();}
-function loadPrevMonth(){const sid=document.getElementById('childSelect').value;const card=document.getElementById('prevMonthCard');if(!sid){card.style.display='none';return;}const sr=db.exec(`SELECT school FROM students WHERE id=${sid}`);if(sr.length&&sr[0].values.length)document.getElementById('entrySchool').value=sr[0].values[0][0]||'';;const r=db.exec(`SELECT school_fee,van_fee,tuition_fee,paper_fund FROM fee_entries WHERE student_id=${sid} ORDER BY id DESC LIMIT 1`);if(r.length&&r[0].values.length){const row=r[0].values[0];document.getElementById('prevSchoolFee').textContent=fmtPKR(row[0]);document.getElementById('prevVanFee').textContent=fmtPKR(row[1]);document.getElementById('prevTuitionFee').textContent=fmtPKR(row[2]);document.getElementById('prevPaperFund').textContent=fmtPKR(row[3]);document.getElementById('entrySchoolFee').value=row[0];document.getElementById('entryVanFee').value=row[1];document.getElementById('entryTuitionFee').value=row[2];document.getElementById('entryPaperFund').value=row[3];updateLiveTotal();card.style.display='block';}else card.style.display='none';}
-function saveEntry(){const date=document.getElementById('entryDate').value.trim();const sid=document.getElementById('childSelect').value;const school=document.getElementById('entrySchool').value.trim();const sf=parseFloat(document.getElementById('entrySchoolFee').value)||0;const vf=parseFloat(document.getElementById('entryVanFee').value)||0;const tf=parseFloat(document.getElementById('entryTuitionFee').value)||0;const pf=parseFloat(document.getElementById('entryPaperFund').value)||0;const total=sf+vf+tf+pf;if(!date){toast('Date required!');return;}if(!sid){toast('Select a child!');return;}if(editingEntryId){db.run(`UPDATE fee_entries SET date=?,school_name=?,school_fee=?,van_fee=?,tuition_fee=?,paper_fund=?,total=? WHERE id=?`,[date,school,sf,vf,tf,pf,total,editingEntryId]);toast('Entry updated!');editingEntryId=null;}else{db.run(`INSERT INTO fee_entries (date,student_id,school_name,school_fee,van_fee,tuition_fee,paper_fund,total) VALUES (?,?,?,?,?,?,?,?)`,[date,sid,school,sf,vf,tf,pf,total]);toast('Entry saved!');}saveDBToStorage();resetEntryForm();loadRecentEntries();populateReportFilters();}
-function resetEntryForm(){document.getElementById('childSelect').value='';document.getElementById('entrySchool').value='';['entrySchoolFee','entryVanFee','entryTuitionFee','entryPaperFund'].forEach(id=>document.getElementById(id).value='');document.getElementById('liveTotalAmt').textContent='PKR 0';document.getElementById('prevMonthCard').style.display='none';setTodayDate();editingEntryId=null;}
-function loadRecentEntries(){const rows=db.exec(`SELECT fe.id,fe.date,s.name,fe.school_name,fe.total FROM fee_entries fe JOIN students s ON s.id=fe.student_id ORDER BY fe.id DESC LIMIT 15`);const el=document.getElementById('recentList');if(!rows.length||!rows[0].values.length){el.innerHTML=`<div class="no-data"><div class="no-data-icon">📭</div>No entries yet</div>`;return;}el.innerHTML=rows[0].values.map(r=>`<div class="fee-item" onclick="viewEntry(${r[0]})"><div><div class="fee-item-name">👦 ${r[2]}</div><div class="fee-item-school">🏫 ${r[3]||'—'}</div></div><div style="text-align:right"><div class="fee-item-total">${fmtPKR(r[4])}</div><div class="fee-item-date">📅 ${r[1]}</div></div></div>`).join('');}
-function viewEntry(id){const r=db.exec(`SELECT fe.*,s.name FROM fee_entries fe JOIN students s ON s.id=fe.student_id WHERE fe.id=${id}`);if(!r.length||!r[0].values.length)return;const row=r[0].values[0];const[eid,date,sid,school,sf,vf,tf,pf,total,created,name]=row;document.getElementById('entryDetailContent').innerHTML=`<div style="text-align:center;margin-bottom:12px;"><div style="font-size:32px;">👦</div><div style="font-size:17px;font-weight:800;color:var(--primary-dark)">${name}</div><div style="font-size:11px;color:var(--text2)">🏫 ${school||'—'} | 📅 ${date}</div></div><div class="fee-detail"><span class="fee-detail-label">🏫 School Fee</span><span class="fee-detail-amount">${fmtPKR(sf)}</span></div><div class="fee-detail"><span class="fee-detail-label">🚌 Van Fee</span><span class="fee-detail-amount">${fmtPKR(vf)}</span></div><div class="fee-detail"><span class="fee-detail-label">📖 Tuition Fee</span><span class="fee-detail-amount">${fmtPKR(tf)}</span></div><div class="fee-detail"><span class="fee-detail-label">📄 Paper Fund</span><span class="fee-detail-amount">${fmtPKR(pf)}</span></div><div class="fee-total-row"><span>💳 TOTAL DUE</span><span>${fmtPKR(total)}</span></div>`;document.getElementById('entryDetailActions').innerHTML=`<button class="btn btn-accent" onclick="editEntry(${eid});closeModal('viewEntryModal')">✏️ Edit</button><button class="btn btn-danger" onclick="deleteEntry(${eid})">🗑️ Delete</button><button class="btn btn-outline" onclick="closeModal('viewEntryModal')">Close</button>`;showModal('viewEntryModal');}
-function editEntry(id){const r=db.exec(`SELECT * FROM fee_entries WHERE id=${id}`);if(!r.length||!r[0].values.length)return;const row=r[0].values[0];const[eid,date,sid,school,sf,vf,tf,pf,total]=row;editingEntryId=eid;document.getElementById('entryDate').value=date;document.getElementById('childSelect').value=sid;document.getElementById('entrySchool').value=school||'';document.getElementById('entrySchoolFee').value=sf;document.getElementById('entryVanFee').value=vf;document.getElementById('entryTuitionFee').value=tf;document.getElementById('entryPaperFund').value=pf;updateLiveTotal();showPage('entry',document.querySelectorAll('.tab-btn')[0]);toast('Edit mode — save to update');}
-function deleteEntry(id){if(!confirm('Delete this entry?'))return;db.run(`DELETE FROM fee_entries WHERE id=${id}`);saveDBToStorage();closeModal('viewEntryModal');toast('Deleted!');loadRecentEntries();}
-function populateReportFilters(){const rows=db.exec(`SELECT DISTINCT date FROM fee_entries ORDER BY id DESC`);const months=new Set();if(rows.length&&rows[0].values.length){rows[0].values.forEach(r=>{const parts=r[0].split('/');if(parts.length===3)months.add(`${parts[1]}/${parts[2]}`);});}const sel=document.getElementById('reportMonth');const current=sel.value;sel.innerHTML=`<option value="">All Months</option>`;[...months].forEach(m=>{sel.innerHTML+=`<option value="${m}" ${m===current?'selected':''}}>${monthLabel(m)}</option>`;});loadChildrenDropdown();}
-function monthLabel(myy){const[mm,yy]=myy.split('/');const names=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return`${names[parseInt(mm)]} 20${yy}`;}
-function loadReport(){const month=document.getElementById('reportMonth').value;const sid=document.getElementById('reportStudent').value;let where=[];if(month){const[mm,yy]=month.split('/');where.push(`fe.date LIKE '%/${mm}/${yy}'`);}if(sid)where.push(`fe.student_id=${sid}`);const whereStr=where.length?'WHERE '+where.join(' AND '):'';const rows=db.exec(`SELECT fe.date,s.name,fe.school_name,fe.school_fee,fe.van_fee,fe.tuition_fee,fe.paper_fund,fe.total FROM fee_entries fe JOIN students s ON s.id=fe.student_id ${whereStr} ORDER BY s.name,fe.date`);let label='All Records';if(month&&!sid)label=monthLabel(month);else if(!month&&sid){const sn=db.exec(`SELECT name FROM students WHERE id=${sid}`);label=sn[0]?.values[0][0]||'';}else if(month&&sid){const sn=db.exec(`SELECT name FROM students WHERE id=${sid}`);label=`${sn[0]?.values[0][0]||''} — ${monthLabel(month)}`;}document.getElementById('reportHeaderDate').textContent=label;if(!rows.length||!rows[0].values.length){document.getElementById('reportBody').innerHTML=`<tr><td colspan="9"><div class="no-data">No data</div></td></tr>`;document.getElementById('statChildren').textContent='0';document.getElementById('statTotal').textContent='PKR 0';return;}const data=rows[0].values;let totalSum=0,names=new Set();let html='';data.forEach((r,i)=>{const[date,name,school,sf,vf,tf,pf,total]=r;names.add(name);totalSum+=total;html+=`<tr><td>${i+1}</td><td>${date}</td><td><b>${name}</b></td><td>${school||'—'}</td><td>${fmtPKR(sf)}</td><td>${fmtPKR(vf)}</td><td>${fmtPKR(tf)}</td><td>${fmtPKR(pf)}</td><td><b>${fmtPKR(total)}</b></td></tr>`;});const totals=data.reduce((acc,r)=>{acc[0]+=r[3];acc[1]+=r[4];acc[2]+=r[5];acc[3]+=r[6];return acc;},[0,0,0,0]);html+=`<tr class="total-row"><td colspan="4">TOTAL</td><td>${fmtPKR(totals[0])}</td><td>${fmtPKR(totals[1])}</td><td>${fmtPKR(totals[2])}</td><td>${fmtPKR(totals[3])}</td><td><b>${fmtPKR(totalSum)}</b></td></tr>`;document.getElementById('reportBody').innerHTML=html;document.getElementById('statChildren').textContent=names.size;document.getElementById('statTotal').textContent=fmtPKR(totalSum);}
-async function downloadReport(){const el=document.getElementById('reportDownload');const tableWrap=el.querySelector('.report-table-wrap');const table=el.querySelector('.report-table');const origWrapOverflow=tableWrap?tableWrap.style.overflow:'';const origTableMinWidth=table?table.style.minWidth:'';try{toast('Image ban rahi hai...');if(tableWrap){tableWrap.style.overflow='visible';tableWrap.style.width='max-content';}if(table){table.style.minWidth='unset';table.style.width='max-content';table.style.fontSize='11px';}el.style.width='max-content';el.style.overflow='visible';el.style.position='relative';const canvas=await html2canvas(el,{scale:2,backgroundColor:'#ffffff',useCORS:true,scrollX:0,scrollY:0,windowWidth:el.scrollWidth+40});const fname=`FeeReport_${new Date().toISOString().split('T')[0]}.png`;canvas.toBlob(blob=>{openFolderPicker('Report Image Save?','Image kahan save karein?',blob,fname);},' + "'image/png'" + ',1.0);}catch(e){toast('Error: '+e.message);}finally{if(tableWrap){tableWrap.style.overflow=origWrapOverflow;tableWrap.style.width='';}if(table){table.style.minWidth=origTableMinWidth;table.style.width='';table.style.fontSize='';}el.style.width='';el.style.overflow='';el.style.position='';}}
-function exportData(){const students=db.exec("SELECT * FROM students");const entries=db.exec("SELECT * FROM fee_entries");const data={version:1,exported:new Date().toISOString(),students:students[0]?{columns:students[0].columns,values:students[0].values}:{columns:[],values:[]},entries:entries[0]?{columns:entries[0].columns,values:entries[0].values}:{columns:[],values:[]}};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const fname=`FeeManager_Backup_${new Date().toISOString().split('T')[0]}.json`;openFolderPicker('Backup Kahan Save?','JSON backup file',blob,fname);}
-function importData(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const data=JSON.parse(e.target.result);if(!data.students||!data.entries)throw new Error('Invalid file');if(!confirm('Import will ADD to existing data. Continue?'))return;data.students.values.forEach(row=>{const name=row[1];const school=row[2]||'';;const exists=db.exec(`SELECT id FROM students WHERE name=?`,[name]);if(!exists.length||!exists[0].values.length)db.run(`INSERT INTO students (name,school) VALUES (?,?)`,[name,school]);});data.entries.values.forEach(row=>{const origSid=row[2];const origStudent=data.students.values.find(s=>s[0]==origSid);if(!origStudent)return;const newSid=db.exec(`SELECT id FROM students WHERE name=?`,[origStudent[1]]);if(!newSid.length||!newSid[0].values.length)return;const sid=newSid[0].values[0][0];db.run(`INSERT INTO fee_entries (date,student_id,school_name,school_fee,van_fee,tuition_fee,paper_fund,total) VALUES (?,?,?,?,?,?,?,?)`,[row[1],sid,row[3],row[4],row[5],row[6],row[7],row[8]]);});saveDBToStorage();refreshAll();toast('Data imported!');}catch(err){toast('Import failed: '+err.message);}event.target.value='';};reader.readAsText(file);}
-(function(){const bar=document.getElementById('offline-bar');function upd(){bar.style.display=navigator.onLine?'none':'block';}window.addEventListener('online',upd);window.addEventListener('offline',upd);upd();})();
-document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});});
-if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
-// INIT — Preload SQL.js on page load (background mein)
-async function preloadSQL(){
-  try{
-    if(!SQL){
-      SQL = await initSqlJs({locateFile:f=>`https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}`});
-      console.log('SQL.js preloaded!');
-    }
-  }catch(e){ console.error('SQL preload error:',e); }
+
+function unlock(){
+  document.getElementById('lock-screen').classList.add('hidden');
+  document.getElementById('mainApp').style.display='block';
+  initApp();
 }
-openIDB().then(()=>{
-  preloadSQL();
-}).catch(()=>console.log('IDB error'));
+function updDots(){ for(let i=0;i<4;i++) document.getElementById('d'+i).classList.toggle('filled',i<pinBuf.length); }
+function setErr(m){ const e=document.getElementById('pin-err'); e.textContent=m; e.style.color='#FFB300'; }
+function startChgPin(){ pinMode='new'; pinBuf=''; newTmp=''; document.getElementById('pin-lbl').textContent='SET NEW PIN'; setErr(''); updDots(); }
+function lockApp(){ pinMode='enter'; pinBuf=''; document.getElementById('pin-lbl').textContent='ENTER PIN'; setErr(''); updDots(); document.getElementById('lock-screen').classList.remove('hidden'); document.getElementById('mainApp').style.display='none'; document.getElementById('forgot-pin-section').style.display='none'; document.getElementById('pin-entry-ui').style.display='flex'; }
+async function showForgot(){ const d=await getSQ(); if(!d){ toast('Settings mein secret question set karein!'); return; } document.getElementById('pin-entry-ui').style.display='none'; document.getElementById('forgot-pin-section').style.display='block'; document.getElementById('fp-q').textContent='❓ '+d.q; document.getElementById('fp-ans').value=''; document.getElementById('fp-err').textContent=''; }
+function hideForgot(){ document.getElementById('forgot-pin-section').style.display='none'; document.getElementById('pin-entry-ui').style.display='flex'; }
+async function verifyForgot(){ const d=await getSQ(); const a=document.getElementById('fp-ans').value.trim().toLowerCase(); const el=document.getElementById('fp-err'); if(!a){el.textContent='Jawab likhein!';return;} if(!d){el.textContent='Question nahi mila!';return;} if(a===d.a||d.a.includes(a)||a.includes(d.a)){ el.style.color='#69f0ae'; el.textContent='✅ Sahi!'; setTimeout(()=>{ hideForgot(); setTimeout(()=>{ document.getElementById('pin-lbl').textContent='SET NEW PIN'; setErr('Naya PIN set karein'); document.getElementById('pin-err').style.color='#69f0ae'; pinMode='new'; pinBuf=''; newTmp=''; updDots(); },200); },600); } else { el.style.color='#FFB300'; el.textContent='❌ Galat jawab!'; } }
+
+// ============================================================
+//  FOLDER PICKER
+// ============================================================
+let fpBlob=null,fpName=null;
+function openFP(title,sub,blob,name){ fpBlob=blob; fpName=name; document.getElementById('fp-title').textContent=title; document.getElementById('fp-sub').textContent=sub; document.getElementById('fp-modal').classList.add('open'); }
+function closeFP(){ document.getElementById('fp-modal').classList.remove('open'); fpBlob=null; fpName=null; }
+function fpAction(t){ const b=fpBlob,n=fpName; closeFP(); if(!b) return; if(t==='sh'){ const f=new File([b],n,{type:b.type}); if(navigator.share&&navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:'Fee Manager'}).catch(()=>dlBlob(b,n)); return; } } dlBlob(b,n); }
+function dlBlob(b,n){ const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download=n; document.body.appendChild(a); a.click(); setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(u); },2000); toast('✅ Downloaded!'); }
+
+// ============================================================
+//  APP INIT
+// ============================================================
+function initApp(){
+  setTodayDate();
+  loadStuDropdown();
+  loadRecent();
+  populateReportFilters();
+  updSQStatus();
+}
+
+function setTodayDate(){ const d=new Date(); document.getElementById('eDate').value=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getFullYear()).slice(-2)}`; }
+
+// ============================================================
+//  UTILS
+// ============================================================
+let toastT;
+function toast(m,dur=2500){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),dur); }
+function pkr(n){ return 'PKR '+Number(n||0).toLocaleString(); }
+function showPg(pg,btn){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); document.getElementById('pg-'+pg).classList.add('active'); btn.classList.add('active'); if(pg==='report')loadReport(); if(pg==='students')loadStuList(); if(pg==='settings')updSQStatus(); }
+function openMod(id){ document.getElementById(id).classList.add('open'); }
+function closeMod(id){ document.getElementById(id).classList.remove('open'); }
+
+// ============================================================
+//  STUDENTS
+// ============================================================
+function loadStuDropdown(){
+  const stus=STORE.getStudents();
+  const sel=document.getElementById('eStu');
+  const rSel=document.getElementById('rStu');
+  let h='<option value="">-- Select Child --</option>';
+  let rh='<option value="">All Students</option>';
+  stus.forEach(s=>{ h+=`<option value="${s.id}">${s.name}</option>`; rh+=`<option value="${s.id}">${s.name}</option>`; });
+  sel.innerHTML=h; rSel.innerHTML=rh;
+}
+
+function showAddStu(id=null){
+  document.getElementById('editStuId').value='';
+  document.getElementById('stuName').value='';
+  document.getElementById('stuSchool').value='';
+  if(id){
+    const s=STORE.getStudents().find(x=>x.id==id);
+    if(s){ document.getElementById('editStuId').value=s.id; document.getElementById('stuName').value=s.name; document.getElementById('stuSchool').value=s.school||''; }
+  }
+  openMod('addStuModal');
+}
+
+function saveStu(){
+  const name=document.getElementById('stuName').value.trim();
+  const school=document.getElementById('stuSchool').value.trim();
+  const editId=document.getElementById('editStuId').value;
+  if(!name){ toast('❌ Name required!'); return; }
+  const stus=STORE.getStudents();
+  if(editId){ const i=stus.findIndex(x=>x.id==editId); if(i>=0){stus[i].name=name;stus[i].school=school;} toast('✅ Updated!'); }
+  else{ stus.push({id:STORE.nextId('cfm_stu_id'),name,school}); toast('✅ Student added!'); }
+  STORE.saveStudents(stus); closeMod('addStuModal'); loadStuDropdown(); loadStuList();
+}
+
+function loadStuList(){
+  const stus=STORE.getStudents();
+  const el=document.getElementById('stuList');
+  if(!stus.length){ el.innerHTML='<div class="no-data">No students added</div>'; return; }
+  const entries=STORE.getEntries();
+  el.innerHTML=stus.map(s=>{ const c=entries.filter(e=>e.stuId==s.id).length; return `<div class="fee-item" style="cursor:default"><div><div class="fi-name">&#x1F466; ${s.name}</div><div class="fi-school">&#x1F3EB; ${s.school||'—'} | ${c} entries</div></div><div style="display:flex;gap:6px;"><button class="btn btn-o btn-sm" onclick="showAddStu(${s.id})">&#x270F;</button><button class="btn btn-d btn-sm" onclick="delStu(${s.id})">&#x1F5D1;</button></div></div>`; }).join('');
+}
+
+function delStu(id){ if(!confirm('Delete student and all entries?')) return; const stus=STORE.getStudents().filter(s=>s.id!=id); STORE.saveStudents(stus); const entries=STORE.getEntries().filter(e=>e.stuId!=id); STORE.saveEntries(entries); toast('&#x1F5D1; Deleted!'); loadStuList(); loadStuDropdown(); loadRecent(); }
+
+// ============================================================
+//  ENTRIES
+// ============================================================
+let editEntryId=null;
+
+function loadPrev(){
+  const sid=document.getElementById('eStu').value;
+  if(!sid){ document.getElementById('prevCard').style.display='none'; return; }
+  const stus=STORE.getStudents();
+  const s=stus.find(x=>x.id==sid);
+  if(s) document.getElementById('eSchool').value=s.school||'';
+  const entries=STORE.getEntries().filter(e=>e.stuId==sid);
+  if(entries.length){
+    const last=entries[entries.length-1];
+    document.getElementById('pSF').textContent=pkr(last.sf);
+    document.getElementById('pVF').textContent=pkr(last.vf);
+    document.getElementById('pTF').textContent=pkr(last.tf);
+    document.getElementById('pPF').textContent=pkr(last.pf);
+    document.getElementById('eSF').value=last.sf||'';
+    document.getElementById('eVF').value=last.vf||'';
+    document.getElementById('eTF').value=last.tf||'';
+    document.getElementById('ePF').value=last.pf||'';
+    updTotal();
+    document.getElementById('prevCard').style.display='block';
+  } else document.getElementById('prevCard').style.display='none';
+}
+
+function updTotal(){ const sf=+document.getElementById('eSF').value||0,vf=+document.getElementById('eVF').value||0,tf=+document.getElementById('eTF').value||0,pf=+document.getElementById('ePF').value||0; document.getElementById('eTotal').textContent=pkr(sf+vf+tf+pf); }
+
+function saveEntry(){
+  const date=document.getElementById('eDate').value.trim();
+  const sid=document.getElementById('eStu').value;
+  const school=document.getElementById('eSchool').value.trim();
+  const sf=+document.getElementById('eSF').value||0, vf=+document.getElementById('eVF').value||0, tf=+document.getElementById('eTF').value||0, pf=+document.getElementById('ePF').value||0;
+  const total=sf+vf+tf+pf;
+  if(!date){ toast('❌ Date required!'); return; }
+  if(!sid){ toast('❌ Child select karein!'); return; }
+  const entries=STORE.getEntries();
+  if(editEntryId){ const i=entries.findIndex(e=>e.id==editEntryId); if(i>=0) entries[i]={...entries[i],date,stuId:sid,school,sf,vf,tf,pf,total}; toast('✅ Updated!'); editEntryId=null; }
+  else{ entries.push({id:STORE.nextId('cfm_ent_id'),date,stuId:sid,school,sf,vf,tf,pf,total}); toast('✅ Saved!'); }
+  STORE.saveEntries(entries); resetEntry(); loadRecent(); populateReportFilters();
+}
+
+function resetEntry(){ document.getElementById('eStu').value=''; document.getElementById('eSchool').value=''; ['eSF','eVF','eTF','ePF'].forEach(id=>document.getElementById(id).value=''); document.getElementById('eTotal').textContent='PKR 0'; document.getElementById('prevCard').style.display='none'; setTodayDate(); editEntryId=null; }
+
+function loadRecent(){
+  const entries=STORE.getEntries();
+  const stus=STORE.getStudents();
+  const el=document.getElementById('recentList');
+  if(!entries.length){ el.innerHTML='<div class="no-data">No entries yet</div>'; return; }
+  const recent=[...entries].reverse().slice(0,15);
+  el.innerHTML=recent.map(e=>{ const s=stus.find(x=>x.id==e.stuId); return `<div class="fee-item" onclick="viewEntry(${e.id})"><div><div class="fi-name">&#x1F466; ${s?s.name:'?'}</div><div class="fi-school">&#x1F3EB; ${e.school||'—'}</div></div><div style="text-align:right"><div class="fi-total">${pkr(e.total)}</div><div class="fi-date">&#x1F4C5; ${e.date}</div></div></div>`; }).join('');
+}
+
+function viewEntry(id){
+  const e=STORE.getEntries().find(x=>x.id==id); if(!e) return;
+  const s=STORE.getStudents().find(x=>x.id==e.stuId);
+  document.getElementById('entryDetail').innerHTML=`<div style="text-align:center;margin-bottom:12px;"><div style="font-size:32px;">&#x1F466;</div><div style="font-size:17px;font-weight:800;color:var(--primary-dark)">${s?s.name:'?'}</div><div style="font-size:11px;color:var(--text2)">&#x1F3EB; ${e.school||'—'} | &#x1F4C5; ${e.date}</div></div><div class="fd"><span class="fd-lbl">School Fee</span><span class="fd-amt">${pkr(e.sf)}</span></div><div class="fd"><span class="fd-lbl">Van Fee</span><span class="fd-amt">${pkr(e.vf)}</span></div><div class="fd"><span class="fd-lbl">Tuition Fee</span><span class="fd-amt">${pkr(e.tf)}</span></div><div class="fd"><span class="fd-lbl">Paper Fund</span><span class="fd-amt">${pkr(e.pf)}</span></div><div class="ftot"><span>TOTAL DUE</span><span>${pkr(e.total)}</span></div>`;
+  document.getElementById('entryActs').innerHTML=`<button class="btn btn-a" onclick="editEntry(${id});closeMod('viewEntryModal')">&#x270F; Edit</button><button class="btn btn-d" onclick="delEntry(${id})">&#x1F5D1;</button><button class="btn btn-o" onclick="closeMod('viewEntryModal')">Close</button>`;
+  openMod('viewEntryModal');
+}
+
+function editEntry(id){
+  const e=STORE.getEntries().find(x=>x.id==id); if(!e) return;
+  editEntryId=id;
+  document.getElementById('eDate').value=e.date;
+  document.getElementById('eStu').value=e.stuId;
+  document.getElementById('eSchool').value=e.school||'';
+  document.getElementById('eSF').value=e.sf;
+  document.getElementById('eVF').value=e.vf;
+  document.getElementById('eTF').value=e.tf;
+  document.getElementById('ePF').value=e.pf;
+  updTotal();
+  showPg('entry',document.querySelectorAll('.tab-btn')[0]);
+  toast('✏️ Edit mode');
+}
+
+function delEntry(id){ if(!confirm('Delete?')) return; STORE.saveEntries(STORE.getEntries().filter(e=>e.id!=id)); closeMod('viewEntryModal'); toast('Deleted!'); loadRecent(); }
+
+// ============================================================
+//  REPORT
+// ============================================================
+function populateReportFilters(){
+  const entries=STORE.getEntries();
+  const months=new Set();
+  entries.forEach(e=>{ const p=e.date.split('/'); if(p.length===3) months.add(p[1]+'/'+p[2]); });
+  const sel=document.getElementById('rMonth'); const cur=sel.value;
+  sel.innerHTML='<option value="">All Months</option>';
+  [...months].forEach(m=>sel.innerHTML+=`<option value="${m}" ${m===cur?'selected':''}>${mLbl(m)}</option>`);
+  loadStuDropdown();
+}
+function mLbl(myy){ const[mm,yy]=myy.split('/'); const n=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return `${n[+mm]} 20${yy}`; }
+
+function loadReport(){
+  const month=document.getElementById('rMonth').value;
+  const sid=document.getElementById('rStu').value;
+  const stus=STORE.getStudents();
+  let entries=STORE.getEntries();
+  if(month){ const[mm,yy]=month.split('/'); entries=entries.filter(e=>{ const p=e.date.split('/'); return p[1]===mm&&p[2]===yy; }); }
+  if(sid) entries=entries.filter(e=>e.stuId==sid);
+  let lbl='All Records';
+  if(month&&!sid) lbl=mLbl(month);
+  else if(!month&&sid){ const s=stus.find(x=>x.id==sid); lbl=s?s.name:''; }
+  else if(month&&sid){ const s=stus.find(x=>x.id==sid); lbl=`${s?s.name:''} — ${mLbl(month)}`; }
+  document.getElementById('rptHdr').textContent=lbl;
+  if(!entries.length){ document.getElementById('rptBody').innerHTML='<tr><td colspan="9" class="no-data">No data</td></tr>'; document.getElementById('stStu').textContent='0'; document.getElementById('stTot').textContent='PKR 0'; return; }
+  const names=new Set(); let totSum=0;
+  let html=entries.map((e,i)=>{ const s=stus.find(x=>x.id==e.stuId); names.add(e.stuId); totSum+=e.total; return `<tr><td>${i+1}</td><td>${e.date}</td><td><b>${s?s.name:'?'}</b></td><td>${e.school||'—'}</td><td>${pkr(e.sf)}</td><td>${pkr(e.vf)}</td><td>${pkr(e.tf)}</td><td>${pkr(e.pf)}</td><td><b>${pkr(e.total)}</b></td></tr>`; }).join('');
+  const tots=entries.reduce((a,e)=>{ a[0]+=e.sf;a[1]+=e.vf;a[2]+=e.tf;a[3]+=e.pf; return a; },[0,0,0,0]);
+  html+=`<tr class="tot"><td colspan="4">TOTAL</td><td>${pkr(tots[0])}</td><td>${pkr(tots[1])}</td><td>${pkr(tots[2])}</td><td>${pkr(tots[3])}</td><td><b>${pkr(totSum)}</b></td></tr>`;
+  document.getElementById('rptBody').innerHTML=html;
+  document.getElementById('stStu').textContent=names.size;
+  document.getElementById('stTot').textContent=pkr(totSum);
+}
+
+async function dlReport(){
+  const el=document.getElementById('rptDownload');
+  const tw=el.querySelector('.report-wrap'); const tbl=el.querySelector('.report-tbl');
+  try{
+    toast('⏳ Image bana rahi hai...',4000);
+    if(tw){ tw.style.overflow='visible'; tw.style.width='max-content'; }
+    if(tbl){ tbl.style.minWidth='unset'; tbl.style.width='max-content'; tbl.style.fontSize='11px'; }
+    el.style.cssText+='width:max-content;overflow:visible;position:relative;background:#fff;padding:18px;';
+    const canvas=await html2canvas(el,{scale:2,backgroundColor:'#fff',useCORS:true});
+    const fname=`FeeReport_${new Date().toISOString().split('T')[0]}.png`;
+    canvas.toBlob(blob=>openFP('Report Image Save?','Kahan save karein?',blob,fname),'image/png',1.0);
+  }catch(e){ toast('❌ Error: '+e.message); }
+  finally{ if(tw){tw.style.overflow='';tw.style.width='';} if(tbl){tbl.style.minWidth='';tbl.style.width='';tbl.style.fontSize='';} el.style.cssText=''; }
+}
+
+// ============================================================
+//  SECRET Q
+// ============================================================
+async function saveSQ(){
+  const q=document.getElementById('sq-sel').value; const a=document.getElementById('sq-ans').value.trim();
+  if(!q){ toast('Sawaal chunein!'); return; } if(a.length<2){ toast('Jawab likhein!'); return; }
+  await setSQ(q,a); document.getElementById('sq-ans').value=''; document.getElementById('sq-form').style.display='none';
+  toast('✅ Secret question saved!'); updSQStatus();
+}
+async function updSQStatus(){ const d=await getSQ(); const el=document.getElementById('sq-desc'); if(el) el.innerHTML=d?'✅ Set: <b>'+d.q+'</b>':'⚠️ Set nahi'; }
+function toggleSQForm(){ const f=document.getElementById('sq-form'); f.style.display=f.style.display==='none'||f.style.display===''?'block':'none'; }
+
+// ============================================================
+//  EXPORT / IMPORT
+// ============================================================
+function exportData(){
+  const data={v:2,exported:new Date().toISOString(),students:STORE.getStudents(),entries:STORE.getEntries()};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  openFP('Backup Save?','JSON backup file',blob,`FeeManager_${new Date().toISOString().split('T')[0]}.json`);
+}
+function importData(ev){
+  const file=ev.target.files[0]; if(!file) return;
+  const r=new FileReader(); r.onload=function(e){
+    try{
+      const d=JSON.parse(e.target.result);
+      if(!d.students||!d.entries) throw new Error('Invalid file');
+      if(!confirm('Existing data mein ADD ho ga. Continue?')) return;
+      const stus=STORE.getStudents(); const ents=STORE.getEntries();
+      d.students.forEach(s=>{ if(!stus.find(x=>x.name===s.name)) stus.push({...s,id:STORE.nextId('cfm_stu_id')}); });
+      STORE.saveStudents(stus);
+      d.entries.forEach(e=>ents.push({...e,id:STORE.nextId('cfm_ent_id')}));
+      STORE.saveEntries(ents);
+      loadRecent(); loadStuDropdown(); toast('✅ Imported!');
+    }catch(err){ toast('❌ '+err.message); } ev.target.value='';
+  }; r.readAsText(file);
+}
+
+// ============================================================
+//  OFFLINE BAR & MODAL CLOSE
+// ============================================================
+(function(){ const b=document.getElementById('offline-bar'); function u(){ b.style.display=navigator.onLine?'none':'block'; } window.addEventListener('online',u); window.addEventListener('offline',u); u(); })();
+document.querySelectorAll('.modal-ov').forEach(m=>m.addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); }));
+
+// Service Worker
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
+// ============================================================
+//  BOOT — Open IDB then wait for PIN
+// ============================================================
+openIDB().catch(()=>console.log('IDB unavailable'));
 </script>
 </body>
 </html>
